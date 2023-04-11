@@ -1,6 +1,7 @@
-import { Prop, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, ObjectId } from 'mongoose';
 
+@Schema({ versionKey: false, timestamps: true })
 export class UserDto {
   _id: ObjectId;
 

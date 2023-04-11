@@ -14,6 +14,7 @@ import { UserModule } from './user/user.module';
       useUnifiedTopology: true,
     }),
     AuthModule,
+    UserModule,
   ],
 })
 export class AppModule {}

@@ -7,8 +7,9 @@ import * as argon from 'argon2';
 import { AuthDto } from './dto';
 import { Tokens } from './types';
 import { UserService } from 'src/user/user.service';
-import { UserDto, User } from 'src/db-schema/user.schema';
+import { UserDto } from 'src/db-schema/user.schema';
 import { ConfigService } from '@nestjs/config';
+import { HALF_HOUR, ONE_MONTH } from 'src/common/token.const';
 
 @Injectable()
 export class AuthService {
@@ -75,11 +76,11 @@ export class AuthService {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(jwtPayload, {
         secret: this.config.get<string>('AT_SECRET'),
-        expiresIn: '15m',
+        expiresIn: HALF_HOUR,
       }),
       this.jwtService.signAsync(jwtPayload, {
         secret: this.config.get<string>('RT_SECRET'),
-        expiresIn: '7d',
+        expiresIn: ONE_MONTH,
       }),
     ]);
 
