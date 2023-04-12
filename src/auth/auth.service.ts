@@ -20,16 +20,16 @@ export class AuthService {
     private config: ConfigService,
   ) {}
 
-  async signupLocal(newUserDto: AuthDto): Promise<Tokens> {
-    const { email, password } = newUserDto;
+  async signUp(dto: AuthDto): Promise<Tokens> {
+    const { email, password } = dto;
 
-    const isEmail = await this.usersService.userByEmail(email);
-    if (isEmail) throw new HttpException('Email in use', HttpStatus.CONFLICT);
+    const isExist = await this.usersService.userByEmail(email);
+    if (isExist) throw new HttpException('Email in use', HttpStatus.CONFLICT);
 
     const hashPassword = await this.hashPassword(password);
 
     const user = await this.usersModel.create({
-      ...newUserDto,
+      ...dto,
       photo: this.getAvatar(),
       password: hashPassword,
     });
@@ -39,11 +39,20 @@ export class AuthService {
     return tokens;
   }
 
-  async signinLocal(dto: AuthDto): Promise<Tokens> {
-    return {
-      accessToken: '123',
-      refreshToken: '123',
-    };
+  async signIn(dto: AuthDto): Promise<Tokens> {
+    const { email, password } = dto;
+
+    const user = await this.usersService.userByEmail(email);
+
+    if (!user) {
+      throw new HttpException('User does not exist', HttpStatus.UNAUTHORIZED);
+    }
+
+    await this.passwordIsValid(user.password, password);
+
+    const tokens = await this.getTokens(user._id, email);
+
+    return tokens;
   }
 
   async logout(userId: number): Promise<boolean> {
@@ -57,6 +66,12 @@ export class AuthService {
     };
   }
 
+  async checkEmail(email: string): Promise<{ status: boolean }> {
+    const isExist = await this.usersService.userByEmail(email);
+
+    return { status: !!isExist };
+  }
+
   private getAvatar(): string {
     const random = uuid();
 
@@ -65,6 +80,14 @@ export class AuthService {
 
   private async hashPassword(password: string): Promise<string> {
     return await argon.hash(password);
+  }
+
+  private async passwordIsValid(password: string, userPassword: string) {
+    const passwordEquals = await argon.verify(password, userPassword);
+
+    if (!passwordEquals) {
+      throw new HttpException('Incorrect password', HttpStatus.UNAUTHORIZED);
+    }
   }
 
   private async getTokens(userId: ObjectId, email: string): Promise<Tokens> {
