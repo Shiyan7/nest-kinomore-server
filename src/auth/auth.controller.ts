@@ -17,6 +17,7 @@ import { Response } from 'express';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from 'src/common/token.const';
 import { accessTokenConfig, refreshTokenConfig } from './cookie.config';
 import { RtGuard } from './guards';
+import { User } from 'src/db-schema/user.schema';
 
 @Controller('auth')
 export class AuthController {
@@ -57,18 +58,18 @@ export class AuthController {
   @UseGuards(RtGuard)
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  logOut(@Req() userId: number): Promise<boolean> {
-    return this.authService.logout(userId);
+  logOut(
+    @Req() req: { user: User; accessToken: string },
+    @Body() { refreshToken }: { refreshToken: string },
+  ) {
+    return this.authService.logOut(req.user, req.accessToken, refreshToken);
   }
 
   @UseGuards(RtGuard)
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  refreshTokens(
-    @Req() userId: number,
-    @Req() refreshToken: string,
-  ): Promise<Tokens> {
-    return this.authService.refreshTokens(userId, refreshToken);
+  refreshTokens(@Req() refreshToken: string): Promise<string> {
+    return this.authService.refreshTokens(refreshToken);
   }
 
   @Public()

@@ -11,4 +11,12 @@ export class UserService {
     const regex = new RegExp(email, 'i');
     return await this.usersModel.findOne({ email: regex });
   }
+
+  async findById(id: string): Promise<User> {
+    return await this.usersModel.findOne({ _id: id });
+  }
+
+  async getMe(id: string) {
+    return this.usersModel.findOne({ _id: id });
+  }
 }

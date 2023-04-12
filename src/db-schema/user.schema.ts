@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, ObjectId } from 'mongoose';
+import { Token } from 'src/auth/types';
 
 @Schema({ versionKey: false, timestamps: true })
 export class UserDto {
@@ -16,6 +17,12 @@ export class UserDto {
 
   @Prop({ type: String, default: '' })
   photo: string;
+
+  @Prop()
+  accessToken: Token[];
+
+  @Prop()
+  refreshToken: Token[];
 }
 
 export const UsersSchema = SchemaFactory.createForClass(UserDto);
