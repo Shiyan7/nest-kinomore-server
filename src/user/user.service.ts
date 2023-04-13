@@ -19,12 +19,16 @@ export class UserService {
     return this.userModel.findById(id).exec();
   }
 
-  async createUser(email: string, password: string): Promise<User> {
-    const user = new this.userModel({ email, password });
+  async createUser(
+    email: string,
+    password: string,
+    photo: string,
+  ): Promise<User> {
+    const user = new this.userModel({ email, password, photo });
     return user.save();
   }
 
-  async updateUser(user: any): Promise<User> {
+  async updateUser(user: Partial<User>): Promise<User> {
     return this.userModel
       .findByIdAndUpdate(user._id, user, { new: true })
       .exec();
