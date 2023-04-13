@@ -26,7 +26,7 @@ export class AuthController {
     @Body() dto: AuthDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const tokens = await this.authService.signup(dto);
+    const tokens = await this.authService.signUp(dto);
 
     this.setCookies(res, tokens);
 
@@ -37,7 +37,7 @@ export class AuthController {
   @Post('/sign-in')
   @HttpCode(HttpStatus.OK)
   async login(@Body() dto: AuthDto, @Res({ passthrough: true }) res: Response) {
-    const tokens = await this.authService.login(dto);
+    const tokens = await this.authService.signIn(dto);
 
     this.setCookies(res, tokens);
 
@@ -74,7 +74,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     this.clearCookies(res);
-    return this.authService.logout(userId);
+    return this.authService.logOut(userId);
   }
 
   private async setCookies(res: Response, tokens: Tokens): Promise<Response> {

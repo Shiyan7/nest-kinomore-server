@@ -7,6 +7,7 @@ import { HALF_HOUR, ONE_DAY } from 'src/common/token.const';
 import { UserService } from 'src/user/user.service';
 import { AuthDto } from './dto/auth.dto';
 import { Tokens } from './types/tokens.type';
+import { User } from 'src/user/user.model';
 
 @Injectable()
 export class AuthService {
@@ -16,7 +17,7 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  async signup(dto: AuthDto) {
+  async signUp(dto: AuthDto): Promise<Tokens> {
     const isExist = await this.userService.findByEmail(dto.email);
 
     if (isExist) {
@@ -40,7 +41,7 @@ export class AuthService {
     return tokens;
   }
 
-  async login(dto: AuthDto): Promise<Tokens> {
+  async signIn(dto: AuthDto): Promise<Tokens> {
     const user = await this.userService.findByEmail(dto.email);
 
     if (!user) {
@@ -97,13 +98,13 @@ export class AuthService {
     return newTokens;
   }
 
-  async logout(userId: string) {
+  async logOut(userId: string): Promise<{ message: string }> {
     await this.userService.updateUser({ _id: userId, hashedRt: null });
 
     return { message: 'ok' };
   }
 
-  async generateTokens(userId: any, email: string): Promise<Tokens> {
+  private async generateTokens(userId: any, email: string): Promise<Tokens> {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
         { sub: userId, email },
@@ -118,12 +119,12 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async updateRtHash(userId: any, rt: string) {
+  private async updateRtHash(userId: any, rt: string): Promise<User> {
     const hashedRt = await this.hashData(rt);
     return this.userService.updateUser({ _id: userId, hashedRt });
   }
 
-  hashData(data: string) {
+  private hashData(data: string): Promise<string> {
     return argon.hash(data);
   }
 
