@@ -5,9 +5,8 @@ import { ACCESS_TOKEN } from 'src/common/token.const';
 
 type JwtPayload = {
   sub: string;
-  username: string;
+  email: string;
 };
-
 const cookieExtractFromRequest = (req: any) => {
   let token = null;
   if (req && req.cookies) {

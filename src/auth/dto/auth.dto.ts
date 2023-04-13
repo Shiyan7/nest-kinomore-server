@@ -1,11 +1,11 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsString, MaxLength } from 'class-validator';
 
 export class AuthDto {
-  @IsNotEmpty()
   @IsString()
+  @IsEmail()
   email: string;
 
-  @IsNotEmpty()
   @IsString()
+  @MaxLength(72, { message: 'Пароль должен быть меньше 72 символов' })
   password: string;
 }

@@ -1,22 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { UserDto, User } from 'src/db-schema/user.schema';
+import { User, UserDto } from './user.model';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(UserDto.name) private usersModel: Model<User>) {}
+  constructor(@InjectModel(UserDto.name) private userModel: Model<User>) {}
 
-  async userByEmail(email: string): Promise<User> {
-    const regex = new RegExp(email, 'i');
-    return await this.usersModel.findOne({ email: regex });
+  async getMe(id: string): Promise<User> {
+    return this.userModel.findById(id).select('-password -hashedRt').exec();
+  }
+
+  async findByEmail(email: string): Promise<User> {
+    return this.userModel.findOne({ email }).exec();
   }
 
   async findById(id: string): Promise<User> {
-    return await this.usersModel.findOne({ _id: id });
+    return this.userModel.findById(id).exec();
   }
 
-  async getMe(id: string) {
-    return this.usersModel.findOne({ _id: id });
+  async createUser(email: string, password: string): Promise<User> {
+    const user = new this.userModel({ email, password });
+    return user.save();
+  }
+
+  async updateUser(user: any): Promise<User> {
+    return this.userModel
+      .findByIdAndUpdate(user._id, user, { new: true })
+      .exec();
   }
 }

@@ -1,81 +1,123 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  HttpStatus,
-  Get,
-  Post,
-  Req,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
-import { Public } from 'src/common/decorators';
-import { AuthService } from './auth.service';
-import { AuthDto } from './dto';
-import { Tokens } from './types';
+import { Body, Controller, Post, Res } from '@nestjs/common';
+import { HttpCode, UseGuards } from '@nestjs/common/decorators';
+import { HttpStatus } from '@nestjs/common/enums';
 import { Response } from 'express';
-import { ACCESS_TOKEN, REFRESH_TOKEN } from 'src/common/token.const';
-import { accessTokenConfig, refreshTokenConfig } from './cookie.config';
-import { RtGuard } from './guards';
-import { User } from 'src/db-schema/user.schema';
+import {
+  CurrUser,
+  GetCurrentUser,
+} from 'src/common/decorators/get-current-user.decorator';
+import { GetCurrentUserId } from 'src/common/decorators/get-current-userId.decorator';
+import { Public } from 'src/common/decorators/public.decorator';
+import {
+  ACCESS_TOKEN,
+  HALF_HOUR,
+  ONE_DAY,
+  REFRESH_TOKEN,
+} from 'src/common/token.const';
+import { AuthService } from './auth.service';
+import { AuthDto } from './dto/auth.dto';
+import { RtGuard } from './guards/rt.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Public()
-  @Post('sign-up')
+  @Post('/sign-up')
   @HttpCode(HttpStatus.CREATED)
-  async signUpLocal(
+  async register(
     @Body() dto: AuthDto,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<Tokens> {
-    const tokens = await this.authService.signUp(dto);
-
-    res.cookie(REFRESH_TOKEN, tokens.refreshToken, refreshTokenConfig);
-
-    res.cookie(ACCESS_TOKEN, tokens.accessToken, accessTokenConfig);
-
-    return tokens;
-  }
-
-  @Public()
-  @Post('sign-in')
-  @HttpCode(HttpStatus.OK)
-  async signInLocal(
-    @Body() dto: AuthDto,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<Tokens> {
-    const tokens = await this.authService.signIn(dto);
-
-    res.cookie(REFRESH_TOKEN, tokens.refreshToken, refreshTokenConfig);
-
-    res.cookie(ACCESS_TOKEN, tokens.accessToken, accessTokenConfig);
-
-    return tokens;
-  }
-
-  @UseGuards(RtGuard)
-  @Post('logout')
-  @HttpCode(HttpStatus.OK)
-  logOut(
-    @Req() req: { user: User; accessToken: string },
-    @Body() { refreshToken }: { refreshToken: string },
   ) {
-    return this.authService.logOut(req.user, req.accessToken, refreshToken);
-  }
+    const tokens = await this.authService.signup(dto);
 
-  @UseGuards(RtGuard)
-  @Post('refresh')
-  @HttpCode(HttpStatus.OK)
-  refreshTokens(@Req() refreshToken: string): Promise<string> {
-    return this.authService.refreshTokens(refreshToken);
+    res.cookie(ACCESS_TOKEN, tokens.accessToken, {
+      maxAge: HALF_HOUR * 1000,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    });
+
+    res.cookie(REFRESH_TOKEN, tokens.refreshToken, {
+      maxAge: ONE_DAY * 1000,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    });
+
+    return tokens;
   }
 
   @Public()
-  @Get('check-email')
-  @HttpCode(HttpStatus.OK)
-  async check(@Body('email') email: string): Promise<{ status: boolean }> {
-    return await this.authService.checkEmail(email);
+  @Post('/sign-in')
+  async login(@Body() dto: AuthDto, @Res({ passthrough: true }) res: Response) {
+    const tokens = await this.authService.login(dto);
+
+    res.cookie(ACCESS_TOKEN, tokens.accessToken, {
+      maxAge: HALF_HOUR * 1000,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    });
+
+    res.cookie(REFRESH_TOKEN, tokens.refreshToken, {
+      maxAge: ONE_DAY * 1000,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    });
+
+    return tokens;
+  }
+
+  @UseGuards(RtGuard)
+  @Post('/refresh')
+  async refreshToken(
+    @GetCurrentUser() user: CurrUser,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const tokens = await this.authService.refreshToken(
+      user.sub,
+      user.refreshToken,
+    );
+
+    res.cookie(ACCESS_TOKEN, tokens.accessToken, {
+      maxAge: HALF_HOUR * 1000,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    });
+
+    res.cookie(REFRESH_TOKEN, tokens.refreshToken, {
+      maxAge: ONE_DAY * 1000,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    });
+
+    return tokens;
+  }
+
+  @UseGuards(RtGuard)
+  @Post('/logout')
+  async logout(
+    @GetCurrentUserId() userId: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    res.cookie(ACCESS_TOKEN, '', {
+      maxAge: HALF_HOUR * 1000,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    });
+
+    res.cookie(REFRESH_TOKEN, '', {
+      maxAge: ONE_DAY * 1000,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    });
+
+    return this.authService.logout(userId);
   }
 }
