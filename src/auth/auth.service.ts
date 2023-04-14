@@ -69,7 +69,7 @@ export class AuthService {
   async checkEmail(email: string): Promise<{ status: boolean }> {
     const isExist = await this.userService.findByEmail(email);
 
-    return { status: !!isExist };
+    return { status: !isExist };
   }
 
   async refreshToken(userId: string, rt: string): Promise<Tokens> {

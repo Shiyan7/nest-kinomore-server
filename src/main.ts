@@ -13,8 +13,8 @@ async function bootstrap() {
   app.use(cookieParser());
 
   const corsWhitelist = [
+    'http://localhost:3000',
     configSerivce.get('CLIENT_URL'),
-    'http://localhost:3000/',
   ];
 
   app.enableCors({

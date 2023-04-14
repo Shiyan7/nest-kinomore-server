@@ -1,5 +1,5 @@
-import { Get, Body, Controller, Post, Res } from '@nestjs/common';
-import { HttpCode, UseGuards } from '@nestjs/common/decorators';
+import { Get, Body, Controller, Post, Res, Query } from '@nestjs/common';
+import { HttpCode, Req, UseGuards } from '@nestjs/common/decorators';
 import { HttpStatus } from '@nestjs/common/enums';
 import { Response } from 'express';
 import {
@@ -47,7 +47,7 @@ export class AuthController {
   @Public()
   @Get('/check-email')
   @HttpCode(HttpStatus.OK)
-  async checkEmail(@Body('email') email: string) {
+  async checkEmail(@Query('email') email: string) {
     return await this.authService.checkEmail(email);
   }
 
