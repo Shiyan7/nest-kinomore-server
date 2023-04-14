@@ -3,7 +3,7 @@ import { v4 as uuid } from 'uuid';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { HALF_HOUR, ONE_DAY } from 'src/common/token.const';
+import { HALF_HOUR, ONE_MONTH } from 'src/common/token.const';
 import { UserService } from 'src/user/user.service';
 import { AuthDto } from './dto/auth.dto';
 import { Tokens } from './types/tokens.type';
@@ -112,7 +112,7 @@ export class AuthService {
       ),
       this.jwtService.signAsync(
         { sub: userId, email },
-        { secret: this.configService.get('RT_SECRET'), expiresIn: ONE_DAY },
+        { secret: this.configService.get('RT_SECRET'), expiresIn: ONE_MONTH },
       ),
     ]);
 
