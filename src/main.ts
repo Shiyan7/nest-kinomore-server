@@ -22,6 +22,6 @@ async function bootstrap() {
     origin: corsWhitelist,
   });
 
-  await app.listen(3333);
+  await app.listen(configSerivce.get('PORT'));
 }
 bootstrap();
