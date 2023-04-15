@@ -1,5 +1,5 @@
 import { Get, Body, Controller, Post, Res, Query } from '@nestjs/common';
-import { HttpCode, Req, UseGuards } from '@nestjs/common/decorators';
+import { HttpCode, UseGuards } from '@nestjs/common/decorators';
 import { HttpStatus } from '@nestjs/common/enums';
 import { Response } from 'express';
 import {
@@ -22,7 +22,7 @@ export class AuthController {
   @Public()
   @Post('/sign-up')
   @HttpCode(HttpStatus.CREATED)
-  async register(
+  async signUp(
     @Body() dto: AuthDto,
     @Res({ passthrough: true }) res: Response,
   ) {
@@ -36,7 +36,10 @@ export class AuthController {
   @Public()
   @Post('/sign-in')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() dto: AuthDto, @Res({ passthrough: true }) res: Response) {
+  async signIn(
+    @Body() dto: AuthDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const tokens = await this.authService.signIn(dto);
 
     this.setCookies(res, tokens);
@@ -53,11 +56,11 @@ export class AuthController {
 
   @UseGuards(RtGuard)
   @Post('/refresh')
-  async refreshToken(
+  async refreshTokens(
     @GetCurrentUser() user: CurrUser,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const tokens = await this.authService.refreshToken(
+    const tokens = await this.authService.refreshTokens(
       user.sub,
       user.refreshToken,
     );
@@ -69,7 +72,7 @@ export class AuthController {
 
   @UseGuards(RtGuard)
   @Post('/logout')
-  async logout(
+  async logOut(
     @GetCurrentUserId() userId: string,
     @Res({ passthrough: true }) res: Response,
   ) {

@@ -72,7 +72,7 @@ export class AuthService {
     return { status: !isExist };
   }
 
-  async refreshToken(userId: string, rt: string): Promise<Tokens> {
+  async refreshTokens(userId: string, rt: string): Promise<Tokens> {
     const user = await this.userService.findById(userId);
 
     if (!user || !user.hashedRt) {

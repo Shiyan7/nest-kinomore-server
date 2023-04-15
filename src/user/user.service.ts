@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User, UserDto } from './user.model';
+import { User } from './user.model';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(UserDto.name) private userModel: Model<User>) {}
+  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
   async getMe(id: string): Promise<User> {
     return this.userModel.findById(id).select('-password -hashedRt').exec();
