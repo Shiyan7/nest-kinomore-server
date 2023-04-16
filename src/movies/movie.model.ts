@@ -1,4 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
+
+export type MovieDocument = Movie & Document;
 
 @Schema({ versionKey: false, timestamps: true })
 export class Movie {

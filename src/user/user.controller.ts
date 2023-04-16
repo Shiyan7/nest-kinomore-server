@@ -2,6 +2,7 @@ import { Controller, Get, UseGuards } from '@nestjs/common';
 import { AtGuard } from 'src/auth/guards/at.guard';
 import { UserService } from './user.service';
 import { GetCurrentUserId } from 'src/common/decorators/get-current-userId.decorator';
+import { UserDocument } from './user.model';
 
 @Controller('user')
 export class UserController {
@@ -9,7 +10,7 @@ export class UserController {
 
   @UseGuards(AtGuard)
   @Get('/profile')
-  async getMe(@GetCurrentUserId() userId: string) {
+  async getMe(@GetCurrentUserId() userId: string): Promise<UserDocument> {
     return this.userService.getMe(userId);
   }
 }

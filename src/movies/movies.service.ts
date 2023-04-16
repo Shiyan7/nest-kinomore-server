@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { FileType, FilesService } from 'src/files/files.service';
-import { Movie } from './movie.model';
+import { Movie, MovieDocument } from './movie.model';
 import { Files } from './files.interface';
 
 @Injectable()
@@ -12,7 +12,7 @@ export class MoviesService {
     private filesService: FilesService,
   ) {}
 
-  async create(dto: Movie, files: Files): Promise<Movie> {
+  async create(dto: Movie, files: Files): Promise<MovieDocument> {
     const isExist = await this.findById(dto.id);
 
     if (isExist) {
@@ -32,12 +32,12 @@ export class MoviesService {
     return track;
   }
 
-  async getAll(): Promise<Movie[]> {
+  async getAll(): Promise<MovieDocument[]> {
     const allMovies = await this.movieModel.find().exec();
     return allMovies;
   }
 
-  private async findById(id: number): Promise<Movie> {
+  private async findById(id: number): Promise<MovieDocument> {
     return this.movieModel.findOne({ id }).exec();
   }
 }

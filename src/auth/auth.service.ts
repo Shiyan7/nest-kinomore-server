@@ -7,7 +7,7 @@ import { HALF_HOUR, ONE_MONTH } from 'src/common/token.const';
 import { UserService } from 'src/user/user.service';
 import { AuthDto } from './dto/auth.dto';
 import { Tokens } from './types/tokens.type';
-import { User } from 'src/user/user.model';
+import { UserDocument } from 'src/user/user.model';
 
 @Injectable()
 export class AuthService {
@@ -119,7 +119,7 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private async updateRtHash(userId: any, rt: string): Promise<User> {
+  private async updateRtHash(userId: any, rt: string): Promise<UserDocument> {
     const hashedRt = await this.hashData(rt);
     return this.userService.updateUser({ _id: userId, hashedRt });
   }
