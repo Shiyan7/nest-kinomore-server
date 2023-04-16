@@ -22,15 +22,12 @@ export class MoviesService {
       );
     }
 
-    const videoPath = this.filesService.createFile(
-      FileType.VIDEO,
-      files.trailer,
-    );
-    const imagePath = this.filesService.createFile(FileType.IMAGE, files.image);
+    const trailer = this.filesService.createFile(FileType.VIDEO, files.trailer);
+    const image = this.filesService.createFile(FileType.IMAGE, files.image);
     const track = await this.movieModel.create({
       ...dto,
-      trailer: videoPath,
-      picture: imagePath,
+      trailer,
+      image,
     });
     return track;
   }
