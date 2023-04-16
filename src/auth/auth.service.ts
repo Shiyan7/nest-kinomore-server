@@ -1,5 +1,5 @@
-import * as argon from 'argon2';
 import { v4 as uuid } from 'uuid';
+import * as bcrypt from 'bcrypt';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -22,7 +22,7 @@ export class AuthService {
 
     if (isExist) {
       throw new HttpException(
-        { message: 'Пользователь с таким именем уже существует' },
+        { message: 'Пользователь с таким email уже существует' },
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -46,16 +46,16 @@ export class AuthService {
 
     if (!user) {
       throw new HttpException(
-        { message: 'Пользователь с таким именем или паролем не найден' },
+        { message: 'Неправильный логин или пароль' },
         HttpStatus.BAD_REQUEST,
       );
     }
 
-    const isPassMatch = await argon.verify(user.password, dto.password);
+    const isPassMatch = await bcrypt.compare(dto.password, user.password);
 
     if (!isPassMatch) {
       throw new HttpException(
-        { message: 'Пользователь с таким именем или паролем не найден' },
+        { message: 'Неправильный логин или пароль' },
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -82,7 +82,7 @@ export class AuthService {
       );
     }
 
-    const rtMatch = await argon.verify(user.hashedRt, rt);
+    const rtMatch = await bcrypt.compare(rt, user.hashedRt);
 
     if (!rtMatch) {
       throw new HttpException(
@@ -125,7 +125,7 @@ export class AuthService {
   }
 
   private hashData(data: string): Promise<string> {
-    return argon.hash(data);
+    return bcrypt.hash(data, 10);
   }
 
   private getAvatar(): string {
