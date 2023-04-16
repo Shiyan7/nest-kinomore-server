@@ -51,7 +51,8 @@ export class AuthController {
   @Get('/check-email')
   @HttpCode(HttpStatus.OK)
   async checkEmail(@Query('email') email: string) {
-    return await this.authService.checkEmail(email);
+    const isExist = await this.authService.checkEmail(email);
+    return isExist;
   }
 
   @UseGuards(RtGuard)

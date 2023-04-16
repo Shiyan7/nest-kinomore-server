@@ -1,10 +1,14 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth/auth.controller';
 import { AuthModule } from './auth/auth.module';
 import { UserController } from './user/user.controller';
 import { UserModule } from './user/user.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MoviesModule } from './movies/movies.module';
+import { FilesModule } from './files/files.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import * as path from 'path';
 
 @Module({
   imports: [
@@ -20,10 +24,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         useUnifiedTopology: true,
       }),
     }),
+    ServeStaticModule.forRoot({ rootPath: path.resolve('./', 'static') }),
     AuthModule,
     UserModule,
+    MoviesModule,
+    FilesModule,
   ],
   controllers: [AuthController, UserController],
-  providers: [],
 })
 export class AppModule {}
