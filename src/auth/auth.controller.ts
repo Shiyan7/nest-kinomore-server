@@ -30,7 +30,7 @@ export class AuthController {
 
     this.setCookies(res, tokens);
 
-    return tokens;
+    return { message: 'ok' };
   }
 
   @Public()
@@ -44,7 +44,7 @@ export class AuthController {
 
     this.setCookies(res, tokens);
 
-    return tokens;
+    return { message: 'ok' };
   }
 
   @Public()
