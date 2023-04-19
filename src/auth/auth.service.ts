@@ -29,11 +29,12 @@ export class AuthService {
 
     const hashedPass = await this.hashData(dto.password);
 
-    const user = await this.userService.createUser(
-      dto.email,
-      hashedPass,
-      this.getAvatar(),
-    );
+    const user = await this.userService.createUser({
+      email: dto.email,
+      password: hashedPass,
+      avatar: this.getAvatar(),
+      name: this.getName(dto.email),
+    });
 
     const tokens = await this.generateTokens(user._id, user.email);
     await this.updateRtHash(user._id, tokens.refreshToken);
@@ -133,5 +134,11 @@ export class AuthService {
     const apiKey = this.configService.get('MULTIAVATAR_API_KEY');
 
     return `https://api.multiavatar.com/${random}.png?apikey=${apiKey}`;
+  }
+
+  private getName(email: string): string {
+    const atIndex = email.indexOf('@');
+
+    return email.substring(0, atIndex);
   }
 }

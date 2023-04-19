@@ -11,7 +11,10 @@ export class User extends Document {
   email: string;
 
   @Prop()
-  photo: string;
+  name: string;
+
+  @Prop()
+  avatar: string;
 
   @Prop()
   password: string;
