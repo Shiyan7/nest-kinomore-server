@@ -9,7 +9,10 @@ export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
   async getMe(id: string): Promise<UserDocument> {
-    return this.userModel.findById(id).select('-password -hashedRt').exec();
+    return this.userModel
+      .findById(id)
+      .select('-password -hashedRt -_id')
+      .exec();
   }
 
   async findByEmail(email: string): Promise<UserDocument> {

@@ -9,7 +9,7 @@ export class UserController {
   constructor(private userService: UserService) {}
 
   @UseGuards(AtGuard)
-  @Get('/profile')
+  @Get('/me')
   async getMe(@GetCurrentUserId() userId: string): Promise<UserDocument> {
     return this.userService.getMe(userId);
   }
