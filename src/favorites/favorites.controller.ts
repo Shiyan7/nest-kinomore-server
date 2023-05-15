@@ -9,8 +9,8 @@ export class FavoritesController {
 
   @UseGuards(AtGuard)
   @Post()
-  async addOne(@GetCurrentUserId() userId: string, @Body('id') id: number) {
-    return this.favoritesService.addOne(userId, id);
+  async toggleOne(@GetCurrentUserId() userId: string, @Body('id') id: number) {
+    return this.favoritesService.toggleOne(userId, id);
   }
 
   @UseGuards(AtGuard)
