@@ -30,14 +30,16 @@ export class FavoritesService {
   }
 
   async getAll(userId: string) {
-    const { items } = await this.favoriteModel.findOne({ userId }).exec();
+    const data = await this.favoriteModel.findOne({ userId }).exec();
 
-    return { items };
+    return { items: data?.items };
   }
 
   async checkOne(userId: string, id: number) {
-    const { items } = await this.favoriteModel.findOne({ userId }).exec();
-    const status = !items.findIndex((x) => x === id);
+    const data = await this.favoriteModel.findOne({ userId }).exec();
+    const status = !data?.items.findIndex((x) => x === id);
+
+    console.log(data.items);
 
     return { status };
   }

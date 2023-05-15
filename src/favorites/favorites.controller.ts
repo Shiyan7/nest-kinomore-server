@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Get } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Query } from '@nestjs/common';
 import { FavoritesService } from './favorites.service';
 import { AtGuard } from 'src/auth/guards/at.guard';
 import { GetCurrentUserId } from 'src/common/decorators';
@@ -9,7 +9,7 @@ export class FavoritesController {
 
   @UseGuards(AtGuard)
   @Get('/check')
-  async checkOne(@GetCurrentUserId() userId: string, @Body('id') id: number) {
+  async checkOne(@GetCurrentUserId() userId: string, @Query('id') id: number) {
     return this.favoritesService.checkOne(userId, id);
   }
 
