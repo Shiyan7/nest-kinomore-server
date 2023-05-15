@@ -9,7 +9,7 @@ export class FavoritesController {
 
   @UseGuards(AtGuard)
   @Get('/check')
-  async checkOne(@GetCurrentUserId() userId: string, @Query('id') id: number) {
+  async checkOne(@GetCurrentUserId() userId: string, @Query('id') id: string) {
     return this.favoritesService.checkOne(userId, id);
   }
 
@@ -21,7 +21,7 @@ export class FavoritesController {
 
   @UseGuards(AtGuard)
   @Post()
-  async toggleOne(@GetCurrentUserId() userId: string, @Body('id') id: number) {
+  async toggleOne(@GetCurrentUserId() userId: string, @Body('id') id: string) {
     return this.favoritesService.toggleOne(userId, id);
   }
 }

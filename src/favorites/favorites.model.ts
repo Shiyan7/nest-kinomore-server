@@ -9,7 +9,7 @@ export class Favorite extends Document {
   userId: string;
 
   @Prop()
-  items: number[];
+  items: string[];
 }
 
 export const FavoriteSchema = SchemaFactory.createForClass(Favorite);
