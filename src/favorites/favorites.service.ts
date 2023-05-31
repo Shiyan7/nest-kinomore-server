@@ -13,7 +13,7 @@ export class FavoritesService {
     const record = await this.favoriteModel.findOne({ userId }).exec();
 
     if (record) {
-      if (!record.items.find((x) => x === id)) {
+      if (!record.items.includes(id)) {
         record.items.push(id);
         await record.save();
       } else {
