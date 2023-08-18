@@ -24,12 +24,13 @@ export class MoviesService {
 
     const trailer = this.filesService.createFile(FileType.VIDEO, files.trailer);
     const image = this.filesService.createFile(FileType.IMAGE, files.image);
-    const track = await this.movieModel.create({
+    const movie = await this.movieModel.create({
       ...dto,
       trailer,
       image,
     });
-    return track;
+
+    return movie;
   }
 
   async getAll(): Promise<MovieDocument[]> {
