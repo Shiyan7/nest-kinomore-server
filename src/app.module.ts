@@ -6,10 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserController } from './user/user.controller';
 import { UserModule } from './user/user.module';
 import { MoviesModule } from './movies/movies.module';
-import { FilesModule } from './files/files.module';
-import { ServeStaticModule } from '@nestjs/serve-static';
 import { FavoritesModule } from './favorites/favorites.module';
-import * as path from 'path';
 
 @Module({
   imports: [
@@ -25,11 +22,9 @@ import * as path from 'path';
         useUnifiedTopology: true,
       }),
     }),
-    ServeStaticModule.forRoot({ rootPath: path.resolve('./', 'static') }),
     AuthModule,
     UserModule,
     MoviesModule,
-    FilesModule,
     FavoritesModule,
   ],
   controllers: [AuthController, UserController],
