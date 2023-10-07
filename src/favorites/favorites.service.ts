@@ -13,12 +13,12 @@ export class FavoritesService {
     const record = await this.favoriteModel.findOne({ userId }).exec();
 
     if (record) {
-      if (!record.items.includes(id)) {
-        record.items.push(id);
+      if (!record?.items.includes(id)) {
+        record?.items.push(id);
         await record.save();
       } else {
-        const index = record.items.findIndex((x) => x === id);
-        record.items.splice(index, 1)[0];
+        const index = record?.items.findIndex((x) => x === id);
+        record?.items.splice(index, 1)[0];
         await record.save();
       }
     } else {
@@ -32,12 +32,12 @@ export class FavoritesService {
   async getAll(userId: string) {
     const data = await this.favoriteModel.findOne({ userId }).exec();
 
-    return { items: data?.items };
+    return { items: data?.items || [] };
   }
 
   async checkOne(userId: string, id: string) {
     const data = await this.favoriteModel.findOne({ userId }).exec();
-    const status = data.items.includes(id);
+    const status = data?.items.includes(id);
 
     return status;
   }
