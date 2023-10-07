@@ -9,7 +9,7 @@ export class FavoritesService {
     @InjectModel(Favorite.name) private favoriteModel: Model<Favorite>,
   ) {}
 
-  async toggleOne(userId: string, id: string) {
+  async toggleOne(userId: string, id: number) {
     const record = await this.favoriteModel.findOne({ userId }).exec();
 
     if (record) {
@@ -35,7 +35,7 @@ export class FavoritesService {
     return { items: data?.items || [] };
   }
 
-  async checkOne(userId: string, id: string) {
+  async checkOne(userId: string, id: number) {
     const data = await this.favoriteModel.findOne({ userId }).exec();
     const status = data?.items.includes(id);
 
