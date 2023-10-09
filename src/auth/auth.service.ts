@@ -37,6 +37,7 @@ export class AuthService {
     });
 
     const tokens = await this.generateTokens(user._id, user.email);
+
     await this.updateRtHash(user._id, tokens.refreshToken);
 
     return tokens;
@@ -138,7 +139,8 @@ export class AuthService {
 
   private getName(email: string): string {
     const atIndex = email.indexOf('@');
+    const name = email.substring(0, atIndex);
 
-    return email.substring(0, atIndex);
+    return name;
   }
 }

@@ -17,7 +17,7 @@ export class FavoritesService {
         record?.items.push(id);
         await record.save();
       } else {
-        const index = record?.items.findIndex((x) => x === id);
+        const index = record?.items.findIndex((recordId) => recordId === id);
         record?.items.splice(index, 1)[0];
         await record.save();
       }
