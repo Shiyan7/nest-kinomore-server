@@ -1,13 +1,13 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { AtGuard } from 'src/auth/guards/at.guard';
+import { GetCurrentUserId } from 'src/common/decorators';
+import { AuthGuard } from 'src/auth/auth.guard';
 import { UserService } from './user.service';
-import { GetCurrentUserId } from 'src/common/decorators/get-current-userId.decorator';
 
 @Controller('user')
+@UseGuards(AuthGuard)
 export class UserController {
   constructor(private userService: UserService) {}
 
-  @UseGuards(AtGuard)
   @Get('/me')
   async getMe(@GetCurrentUserId() userId: string) {
     return this.userService.getMe(userId);

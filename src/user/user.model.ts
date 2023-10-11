@@ -18,9 +18,6 @@ export class User extends Document {
 
   @Prop()
   password: string;
-
-  @Prop()
-  hashedRt: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

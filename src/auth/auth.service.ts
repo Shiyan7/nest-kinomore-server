@@ -1,24 +1,34 @@
 import { v4 as uuid } from 'uuid';
-import * as bcrypt from 'bcrypt';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { HALF_HOUR, ONE_MONTH } from 'src/common/token.const';
 import { UserService } from 'src/user/user.service';
-import { AuthDto } from './dto/auth.dto';
-import { Tokens } from './types/tokens.type';
-import { UserDocument } from 'src/user/user.model';
+import { PasswordService } from './password.service';
+import { Tokens } from './models/tokens.model';
+import { SignUpInput } from './dto/sign-up.input';
+import { User } from 'src/user/user.model';
+import { HALF_HOUR, ONE_MONTH } from 'src/common/token.const';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private userService: UserService,
-    private jwtService: JwtService,
-    private configService: ConfigService,
+    private readonly userService: UserService,
+    private readonly jwtService: JwtService,
+    private readonly passwordService: PasswordService,
+    private readonly configService: ConfigService,
   ) {}
 
-  async signUp(dto: AuthDto): Promise<Tokens> {
-    const isExist = await this.userService.findByEmail(dto.email);
+  async signUp(payload: SignUpInput): Promise<Tokens> {
+    const hashedPassword = await this.passwordService.hashPassword(
+      payload.password,
+    );
+
+    const isExist = await this.userService.findByEmail(payload.email);
 
     if (isExist) {
       throw new HttpException(
@@ -27,24 +37,20 @@ export class AuthService {
       );
     }
 
-    const hashedPass = await this.hashData(dto.password);
-
     const user = await this.userService.createUser({
-      email: dto.email,
-      password: hashedPass,
+      email: payload.email,
+      password: hashedPassword,
       avatar: this.getAvatar(),
-      name: this.getName(dto.email),
+      name: this.getName(payload.email),
     });
 
-    const tokens = await this.generateTokens(user._id, user.email);
-
-    await this.updateRtHash(user._id, tokens.refreshToken);
-
-    return tokens;
+    return this.generateTokens({
+      userId: user._id,
+    });
   }
 
-  async signIn(dto: AuthDto): Promise<Tokens> {
-    const user = await this.userService.findByEmail(dto.email);
+  async signIn(email: string, password: string): Promise<Tokens> {
+    const user = await this.userService.findByEmail(email);
 
     if (!user) {
       throw new HttpException(
@@ -53,81 +59,78 @@ export class AuthService {
       );
     }
 
-    const isPassMatch = await bcrypt.compare(dto.password, user.password);
+    const passwordValid = await this.passwordService.validatePassword(
+      password,
+      user.password,
+    );
 
-    if (!isPassMatch) {
+    if (!passwordValid) {
       throw new HttpException(
         { message: 'Неправильный логин или пароль' },
         HttpStatus.BAD_REQUEST,
       );
     }
 
-    const tokens = await this.generateTokens(user._id, user.email);
-    await this.updateRtHash(user._id, tokens.refreshToken);
+    return this.generateTokens({
+      userId: user.id,
+    });
+  }
+
+  async validateUser(userId: string): Promise<User> {
+    return await this.userService.findById(userId);
+  }
+
+  async checkIsNewUser(email: string): Promise<{ isNewUser: boolean }> {
+    const user = await this.userService.findByEmail(email);
+    const isNewUser = !user;
+
+    return { isNewUser };
+  }
+
+  getName(email: string): string {
+    const [name] = email.split('@');
+
+    return name;
+  }
+
+  private generateAccessToken(payload: { userId: string }): string {
+    return this.jwtService.sign(payload, {
+      secret: this.configService.get('AT_SECRET'),
+      expiresIn: HALF_HOUR,
+    });
+  }
+
+  private generateRefreshToken(payload: { userId: string }): string {
+    return this.jwtService.sign(payload, {
+      secret: this.configService.get('RT_SECRET'),
+      expiresIn: ONE_MONTH,
+    });
+  }
+
+  getUserFromToken(token: string): Promise<User> {
+    const id = this.jwtService.decode(token)['userId'];
+    return this.userService.findById(id);
+  }
+
+  generateTokens(payload: { userId: string }): Tokens {
+    const tokens = {
+      accessToken: this.generateAccessToken(payload),
+      refreshToken: this.generateRefreshToken(payload),
+    };
 
     return tokens;
   }
 
-  async checkEmail(email: string): Promise<{ status: boolean }> {
-    const isExist = await this.userService.findByEmail(email);
+  refreshToken(token: string) {
+    try {
+      const { userId } = this.jwtService.verify(token, {
+        secret: this.configService.get('RT_SECRET'),
+      });
 
-    return { status: !isExist };
-  }
-
-  async refreshTokens(userId: string, rt: string): Promise<Tokens> {
-    const user = await this.userService.findById(userId);
-
-    if (!user || !user.hashedRt) {
-      throw new HttpException(
-        { message: 'Доступ запрещен' },
-        HttpStatus.FORBIDDEN,
-      );
+      return this.generateTokens({ userId });
+    } catch (e) {
+      throw new UnauthorizedException();
     }
-
-    const rtMatch = await bcrypt.compare(rt, user.hashedRt);
-
-    if (!rtMatch) {
-      throw new HttpException(
-        { message: 'Доступ запрещен' },
-        HttpStatus.FORBIDDEN,
-      );
-    }
-
-    const newTokens = await this.generateTokens(user._id, user.email);
-
-    await this.updateRtHash(user._id, newTokens.refreshToken);
-
-    return newTokens;
-  }
-
-  async logOut(userId: string): Promise<{ message: string }> {
-    await this.userService.updateUser({ _id: userId, hashedRt: null });
-
-    return { message: 'ok' };
-  }
-
-  private async generateTokens(userId: any, email: string): Promise<Tokens> {
-    const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(
-        { sub: userId, email },
-        { secret: this.configService.get('AT_SECRET'), expiresIn: HALF_HOUR },
-      ),
-      this.jwtService.signAsync(
-        { sub: userId, email },
-        { secret: this.configService.get('RT_SECRET'), expiresIn: ONE_MONTH },
-      ),
-    ]);
-
-    return { accessToken, refreshToken };
-  }
-
-  private async updateRtHash(userId: any, rt: string): Promise<UserDocument> {
-    const hashedRt = await this.hashData(rt);
-    return this.userService.updateUser({ _id: userId, hashedRt });
-  }
-
-  private hashData(data: string): Promise<string> {
-    return bcrypt.hash(data, 10);
   }
 
   private getAvatar(): string {
@@ -135,12 +138,5 @@ export class AuthService {
     const apiKey = this.configService.get('MULTIAVATAR_API_KEY');
 
     return `https://api.multiavatar.com/${random}.png?apikey=${apiKey}`;
-  }
-
-  private getName(email: string): string {
-    const atIndex = email.indexOf('@');
-    const name = email.substring(0, atIndex);
-
-    return name;
   }
 }

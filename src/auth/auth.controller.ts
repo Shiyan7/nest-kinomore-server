@@ -1,99 +1,43 @@
-import { Get, Body, Controller, Post, Res, Query } from '@nestjs/common';
-import { HttpCode, UseGuards } from '@nestjs/common/decorators';
+import { Get, Body, Controller, Post, Query } from '@nestjs/common';
+import { HttpCode } from '@nestjs/common/decorators';
 import { HttpStatus } from '@nestjs/common/enums';
-import { Response } from 'express';
-import {
-  CurrUser,
-  GetCurrentUser,
-  GetCurrentUserId,
-  Public,
-} from 'src/common/decorators';
-import { ACCESS_TOKEN, REFRESH_TOKEN } from 'src/common/token.const';
 import { AuthService } from './auth.service';
-import { AuthDto } from './dto/auth.dto';
-import { RtGuard } from './guards/rt.guard';
-import { Tokens } from './types/tokens.type';
-import { accessTokenConfig, refreshTokenConfig } from './cookie.config';
+import { SignUpInput } from './dto/sign-up.input';
+import { SignInInput } from './dto/sign-in.input';
+import { RefreshTokenInput } from './dto/refresh-token.input';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly auth: AuthService) {}
 
-  @Public()
   @Post('/sign-up')
   @HttpCode(HttpStatus.CREATED)
-  async signUp(
-    @Body() dto: AuthDto,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const tokens = await this.authService.signUp(dto);
+  async signUp(@Body() dto: SignUpInput) {
+    const tokens = await this.auth.signUp(dto);
 
-    this.setCookies(res, tokens);
-
-    return { message: 'ok' };
+    return tokens;
   }
 
-  @Public()
   @Post('/sign-in')
   @HttpCode(HttpStatus.OK)
-  async signIn(
-    @Body() dto: AuthDto,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const tokens = await this.authService.signIn(dto);
+  async signIn(@Body() { email, password }: SignInInput) {
+    const tokens = await this.auth.signIn(email.toLowerCase(), password);
 
-    this.setCookies(res, tokens);
-
-    return { message: 'ok' };
+    return tokens;
   }
 
-  @Public()
-  @Get('/check-email')
+  @Get('/check-user')
   @HttpCode(HttpStatus.OK)
   async checkEmail(@Query('email') email: string) {
-    const isExist = await this.authService.checkEmail(email);
-    return isExist;
+    const status = await this.auth.checkIsNewUser(email);
+
+    return status;
   }
 
-  @UseGuards(RtGuard)
   @Post('/refresh')
-  async refreshTokens(
-    @GetCurrentUser() user: CurrUser,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const tokens = await this.authService.refreshTokens(
-      user.sub,
-      user.refreshToken,
-    );
+  async refreshTokens(@Body() { token }: RefreshTokenInput) {
+    const tokens = this.auth.refreshToken(token);
 
-    this.setCookies(res, tokens);
-
-    return { message: 'ok' };
-  }
-
-  @UseGuards(RtGuard)
-  @Post('/logout')
-  async logOut(
-    @GetCurrentUserId() userId: string,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    this.clearCookies(res);
-    return this.authService.logOut(userId);
-  }
-
-  private async setCookies(res: Response, tokens: Tokens): Promise<Response> {
-    res.cookie(ACCESS_TOKEN, tokens.accessToken, accessTokenConfig);
-
-    res.cookie(REFRESH_TOKEN, tokens.refreshToken, refreshTokenConfig);
-
-    return res;
-  }
-
-  private async clearCookies(res: Response): Promise<Response> {
-    res.cookie(ACCESS_TOKEN, '', accessTokenConfig);
-
-    res.cookie(REFRESH_TOKEN, '', refreshTokenConfig);
-
-    return res;
+    return tokens;
   }
 }
