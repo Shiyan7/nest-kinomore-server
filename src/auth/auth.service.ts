@@ -12,7 +12,6 @@ import { PasswordService } from './password.service';
 import { Tokens } from './models/tokens.model';
 import { SignUpInput } from './dto/sign-up.input';
 import { User } from 'src/user/user.model';
-import { HALF_HOUR, ONE_MONTH } from 'src/common/token.const';
 
 @Injectable()
 export class AuthService {
@@ -96,14 +95,14 @@ export class AuthService {
   private generateAccessToken(payload: { userId: string }): string {
     return this.jwtService.sign(payload, {
       secret: this.configService.get('AT_SECRET'),
-      expiresIn: HALF_HOUR,
+      expiresIn: '30m',
     });
   }
 
   private generateRefreshToken(payload: { userId: string }): string {
     return this.jwtService.sign(payload, {
       secret: this.configService.get('RT_SECRET'),
-      expiresIn: ONE_MONTH,
+      expiresIn: '30d',
     });
   }
 
