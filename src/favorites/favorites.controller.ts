@@ -1,10 +1,10 @@
 import { Controller, Post, Body, Get, Query, UseGuards } from '@nestjs/common';
 import { FavoritesService } from './favorites.service';
 import { GetCurrentUserId } from 'src/common/decorators';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 
 @Controller('favorites')
-@UseGuards(AuthGuard)
+@UseGuards(JwtAuthGuard)
 export class FavoritesController {
   constructor(private favoritesService: FavoritesService) {}
 

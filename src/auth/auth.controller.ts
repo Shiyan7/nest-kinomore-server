@@ -21,7 +21,15 @@ export class AuthController {
   @Post('/sign-in')
   @HttpCode(HttpStatus.OK)
   async signIn(@Body() { email, password }: SignInInput) {
-    const tokens = await this.auth.signIn(email.toLowerCase(), password);
+    const tokens = await this.auth.signIn(email, password);
+
+    return tokens;
+  }
+
+  @Post('/google')
+  @HttpCode(HttpStatus.OK)
+  async signInGoogle(@Body('code') code: string) {
+    const tokens = await this.auth.signInGoogle(code);
 
     return tokens;
   }

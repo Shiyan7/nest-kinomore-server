@@ -1,11 +1,14 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, ObjectId } from 'mongoose';
 
 export type UserDocument = User & Document;
 
 @Schema({ versionKey: false, timestamps: true })
 export class User extends Document {
-  _id: string;
+  _id: ObjectId;
+
+  @Prop()
+  googleId: string;
 
   @Prop()
   email: string;
