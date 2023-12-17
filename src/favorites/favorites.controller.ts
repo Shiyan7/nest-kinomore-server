@@ -9,8 +9,8 @@ export class FavoritesController {
   constructor(private favoritesService: FavoritesService) {}
 
   @Get('/check')
-  async checkOne(@GetCurrentUserId() userId: string, @Query('id') id: number) {
-    return this.favoritesService.checkOne(userId, id);
+  async check(@GetCurrentUserId() userId: string, @Query('id') id: number) {
+    return this.favoritesService.check(userId, id);
   }
 
   @Get()

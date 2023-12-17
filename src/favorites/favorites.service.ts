@@ -1,5 +1,5 @@
 import { Model } from 'mongoose';
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Favorite } from './favorites.model';
 
@@ -13,12 +13,12 @@ export class FavoritesService {
     const record = await this.favoriteModel.findOne({ userId }).exec();
 
     if (record) {
-      if (!record?.items.includes(id)) {
-        record?.items.push(id);
+      if (!record.items.includes(id)) {
+        record.items.push(id);
         await record.save();
       } else {
         const index = record?.items.findIndex((recordId) => recordId === id);
-        record?.items.splice(index, 1)[0];
+        record.items.splice(index, 1)[0];
         await record.save();
       }
     } else {
@@ -30,15 +30,22 @@ export class FavoritesService {
   }
 
   async getAll(userId: string) {
-    const data = await this.favoriteModel.findOne({ userId }).exec();
+    const { items } = await this.favoriteModel.findOne({ userId }).exec();
 
-    return { items: data?.items || [] };
+    if (!items.length) {
+      throw new HttpException(
+        { message: 'Список избранного пуст' },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return { items: items.filter(Boolean) };
   }
 
-  async checkOne(userId: string, id: number) {
+  async check(userId: string, id: number) {
     const data = await this.favoriteModel.findOne({ userId }).exec();
     const status = data?.items.includes(id);
 
-    return status;
+    return { status };
   }
 }
